@@ -12,13 +12,13 @@ the scores $s_i(\omega)$, and we assume that there are no ties, so $\\{ \mu_i(\o
 
 We assume the following context:
 - for each algorithm $i$, we observe only a subset $X_i \subset \Omega$ with $|X_i| = k_i << n$. This set corresponds to the $k_i$ elements
-$\omega \in \Omega$ with the largest scores $s_i(\omega)$. On $X_i$, we thus have $\mu_i~:~X_i → {1, 2, ..., k_i}$, the 
+$\omega \in \Omega$ with the largest scores $s_i(\omega)$. On $X_i$, we thus have $\mu_i ~ : ~ X_i \rightarrow \\{1, 2, ..., k_i\\}$, the 
 top ranking elements.
 - For all $\omega \in (\Omega \setminus X_i)$, we have that $\mu_i(\omega) > k_i$, but its exact value is unknown.
 
 Note that we may have $k_1 \ne k_2$. We will assume that $k_1 \ge k_2$ without loss of generality.
 
-Based on the above remarks, we wish to design a non-parametric correlation coefficient, which
+Based on the above remarks, we wish to design a non-parametric **correlation coefficient**, which
 we’ll refer to as $\tau_t$, with the following characteristics:
 1. $\tau_t$ ∈ [−1, 1], which is typical for correlation coefficients,
 2. if $k_1 = k_2$ and the top rankings are identical, then $\tau_t$ = 1,
@@ -26,6 +26,8 @@ we’ll refer to as $\tau_t$, with the following characteristics:
 algorithm 2, then $\tau_t$ = 1,
 4. if the two rankings have no common element, then $\tau_t$ = −1,
 5. $n$, the size of the underlying state space, may be unknown, so $\tau_t$ should not be a function of $n$.
+
+In some cases, we want a **similarity** score which we simply define as $\tau_{sim} = (1+\tau_t)/2$ so the values are in range [0,1].
 
 ## Review of the Kendall-τ Correlation Coefficient
 
@@ -107,6 +109,7 @@ $|S_R|$ is a large, a priori unknown quantity where $|S_R| = |\Omega| − |S_{X_
 and $\tau_t$ should be independent of $n$. If the 2 sets $X_1$ and $X_2$ were independent and randomly chosen, we
 could use a “birthday paradox” type of argument to evaluate the most likely value for $|\Omega|$ given $|S_I|$,
 but this is generally not the case here. In fact, for $|X_i| << \sqrt{n}$, we’d get $E|S_I| \approx 0$.
+
 Since $|S_R|$ is assumed unknown, we replace the term $|S_R| \cdot |S_I|$ in Proposition 2 by a function $f(|S_I|)$.
 We now look at the best and worst cases in order to set this function as well as the constant $D$.
 
@@ -124,7 +127,7 @@ From (a) and (b), we get
 
 $$f(m) + f(0) = \frac{m(m + 1)}{2}$$
 
-and with the natural condition f(0) = 0,
+and with the natural condition $f(0) = 0$,
 
 $$f(m) = \frac{m(m + 1)}{2}$$
 
@@ -147,7 +150,7 @@ $$
 ```
 from itertools import combinations as comb
 ## input: 2 lists X and Y of arbitrary length
-def adaptedKendallTau(X, Y):
+def adaptedKendallTau(X, Y, similarity=False):
     SI = [x for x in X if x in Y] ## intersection - list to keep the order as in X
     SX = set(X).difference(SI)    ## in X only
     SY = set(Y).difference(SI)    ## in Y only
@@ -169,7 +172,10 @@ def adaptedKendallTau(X, Y):
     tau -= len(SX)*len(SY)
     tau += l*(l+1)/2
     tau /= (len(X)*len(Y))
-    return tau
+    if similarity:
+        return (1+tau)/2
+    else:
+        return tau
 ```
 
 ## Truncated Kendall-τ Coefficient: Properties
@@ -177,9 +183,9 @@ def adaptedKendallTau(X, Y):
 The three cases below can be shown directly from the definition of $\tau_t$.
 
 **Case 1 - identical top lists:** Let $|X_1| = |X_2| = M$ and $|S_I| = M$, so all items are in both lists.
-1. if the rankings are identical, then $\tau_t = 1$.
-2. if the rankings are reversed, then $\tau_t = 1/M \approx 0$.
-3. if the items are randomly ordered, independently in the two lists, then $\tau_t ≈ 1/2 + 1/(2M) \approx 0.5$.
+1. if the rankings are identical, then $\tau_t = 1$ and $\tau_{sim} = 1$.
+2. if the rankings are reversed, then $\tau_t = 1/M \approx 0$ and $\tau_{sim} \approx 0.5$.
+3. if the items are randomly ordered, independently in the two lists, then $\tau_t ≈ 1/2 + 1/(2M) \approx 0.5$ and $\tau_{sim} \approx 0.75$.
 
 **Case 2 - comparing top and bottom from each list:** We consider $|X_1| = 2m$ and we define, for $i = 1, 2$:
 * $top(X_i)$: the top $m$ items (given ranking) in set $X_i$.
@@ -189,18 +195,19 @@ The three cases below can be shown directly from the definition of $\tau_t$.
 
 Then:
 
-1. If $|X_2| = m$ and $\mu_1(top(X_1)) = \mu_2(top(X_2))$, then $\tau_t = 1$.
+1. If $|X_2| = m$ and $\mu_1(top(X_1)) = \mu_2(top(X_2))$, then $\tau_t = 1$ and $\tau_{sim} = 1$.
 2. If $|X_2| = 2m,~ top(X_1) = top(X_2)$ with $\mu_1(top(X_1)) = \mu_2(top(X_2))$ but $bot(X_1) \cap bot(X_2) = \emptyset$,
-then $\tau_t = 0.5$.
-3. If $|X_2| = m,~ bot(X_1) = top(X_2)$ with $\mu_1(bot(X_1)) = \mu_2(top(X_2))$, then $\tau_t = 0$.
-4. If $|X_2| = 2m,~ bot(X_1) = bot(X_2)$ with $\mu_1(bot(X_1)) = \mu_2(bot(X_2))$ but $top(X_1) \cap top(X_2) = \emptyset$, then $\tau_t = −0.5$.
-5. Finally, if $X_1 \cap X_2 = \emptyset, \tau_t = −1$.
+then $\tau_t = 0.5$ and $\tau_{sim} = 0.75$.
+3. If $|X_2| = m,~ bot(X_1) = top(X_2)$ with $\mu_1(bot(X_1)) = \mu_2(top(X_2))$, then $\tau_t = 0$ and $\tau_{sim} = 0.5$.
+4. If $|X_2| = 2m,~ bot(X_1) = bot(X_2)$ with $\mu_1(bot(X_1)) = \mu_2(bot(X_2))$ but $top(X_1) \cap top(X_2) = \emptyset$, then $\tau_t = −0.5$ and $\tau_{sim} = 0.25$.
+5. Finally, if $X_1 \cap X_2 = \emptyset, \tau_t = −1$ and $\tau_{sim} = 0$.
 
 **Case 3 - limiting results:** We let $|X_1| = M$ and $|X_2| = m = |S_I|$, but we take $M \rightarrow \infty$ with $m$ fixed.
-1. If $top(X_1) = X_2$, then $\tau_t \rightarrow 1$ as $M \rightarrow \infty$.
-2. If $bot(X_1) = X_2$, then $\tau_t \rightarrow −1$ as $M \rightarrow \infty$.
-The intuition here is that in the first case, the number of concordant pairs grows to infinity, while for
-the second case, it is the number of discordant pairs
+1. If $top(X_1) = X_2$, then $\tau_t \rightarrow 1$ ($\tau_{sim} \rightarrow 1$) as $M \rightarrow \infty$.
+2. If $bot(X_1) = X_2$, then $\tau_t \rightarrow −1$ ($\tau_{sim} \rightarrow 0$) as $M \rightarrow \infty$.
+
+The intuition here is that in the first case, the number of **concordant** pairs grows to **infinity**, while for
+the second case, it is the number of **discordant** pairs
 
 
 
