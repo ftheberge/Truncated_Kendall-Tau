@@ -2,6 +2,19 @@ from itertools import combinations as comb
 
 ## input: 2 lists X and Y of arbitrary length
 def truncatedKendallTau(X, Y, similarity=True):
+    '''
+    Trancated Kendall-Tau similarity (default) or correlation between two lists of elements. 
+
+    Parameters
+    ----------
+    X, Y : lists
+    similarity : if True, result is in range [0,1], else [-1,1].
+        
+    Returns
+    -------
+    tau : float in range [0,1] (similarity) or [-1,1] (correlation)
+ 
+    '''
     SI = [x for x in X if x in Y] ## intersection - list to keep the order as in X
     SX = set(X).difference(SI)    ## in X only
     SY = set(Y).difference(SI)    ## in Y only
