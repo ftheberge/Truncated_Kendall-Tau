@@ -150,7 +150,7 @@ $$
 ```
 from itertools import combinations as comb
 ## input: 2 lists X and Y of arbitrary length
-def adaptedKendallTau(X, Y, similarity=False):
+def adaptedKendallTau(X, Y, similarity=True):
     SI = [x for x in X if x in Y] ## intersection - list to keep the order as in X
     SX = set(X).difference(SI)    ## in X only
     SY = set(Y).difference(SI)    ## in Y only
